@@ -6,7 +6,6 @@ import streamlit as st
 from groq import Groq
 
 
-# Initialize session state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "progress" not in st.session_state:
@@ -136,6 +135,8 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+
+
 # Chat Container
 chat_container = st.container()
 with chat_container:
@@ -145,8 +146,7 @@ with chat_container:
             st.markdown(f'<div class="{bubble_class}" style="padding: 1.2rem; margin: 1rem 0;">{message["content"]}</div>', 
                         unsafe_allow_html=True)
     
-   
-# PDF Processing Function
+
 def process_pdf(file):
     if file.size > 5_000_000:
         st.error("File size too large (max 5MB)")
@@ -191,6 +191,8 @@ def process_pdf(file):
     
     return pdf_text
 
+
+
 # Sidebar
 import re
 import streamlit as st
@@ -215,9 +217,7 @@ with st.sidebar:
     if selected_company != "Select a Company":
         st.session_state.company = selected_company
 
-    # Proceed only if API key is provided
-    
-        # Ensure Email is Valid Before Proceeding
+
     if pdf_file is not None and email.strip() != "" and selected_company != "Select a Company":
         if is_valid_email(email):
             if st.session_state.current_stage == "pre_start":
@@ -280,10 +280,7 @@ with st.container():
         )
     
     with col2:
-        st.markdown("<div style='height: 28px'></div>", unsafe_allow_html=True)
-        # if st.button("🎙 Start Recording", use_container_width=True):
-        #     user_input = listen_to_speech()
-        
+        st.markdown("<div style='height: 28px'></div>", unsafe_allow_html=True)        
         if st.button("📤 Submit Answer", use_container_width=True, type="primary") and not st.session_state.interview_complete:
             if user_input.strip():
                 st.session_state.chat_history.append({"role": "user", "content": user_input})
