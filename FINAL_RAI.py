@@ -21,10 +21,12 @@ if "pdf_text" not in st.session_state:
     st.session_state.pdf_text = ""
 
 # Initialize Groq client
-working_dir = os.path.dirname(os.path.abspath(__file__))
-config_data = json.load(open(f"{working_dir}/config.json"))
-client = Groq(api_key=config_data["GROQ_API_KEY"])
-
+# working_dir = os.path.dirname(os.path.abspath(__file__))
+# config_data = json.load(open(f"{working_dir}/config.json"))
+# 
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+# GROQ_API_KEY = os.environ.get("GROQ_API_KEY", st.secrets.get("GROQ_API_KEY"))
+client = Groq(api_key=GROQ_API_KEY)
 # Page configuration
 st.set_page_config(
     page_title="Mock AI Interviewer",
