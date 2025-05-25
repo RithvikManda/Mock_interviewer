@@ -21,12 +21,7 @@ if "pdf_text" not in st.session_state:
     st.session_state.pdf_text = ""
 
 # Initialize Groq client
-# working_dir = os.path.dirname(os.path.abspath(__file__))
-# config_data = json.load(open(f"{working_dir}/config.json"))
-# 
-GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-# GROQ_API_KEY = os.environ.get("GROQ_API_KEY", st.secrets.get("GROQ_API_KEY"))
-client = Groq(api_key=GROQ_API_KEY)
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 # Page configuration
 st.set_page_config(
     page_title="Mock AI Interviewer",
@@ -258,9 +253,100 @@ def is_valid_email(email):
     email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
     return re.match(email_pattern, email) is not None
 
-with st.sidebar:
-    st.markdown("### 📄 Upload Resume")
+def is_valid_groq_api_key(key: str) -> bool:
+    try:
+        client = Groq(api_key=key)
+        # Make a small, harmless test request (like listing models)
+        _ = client.models.list()
+        return True
+    except Exception as e:
+        return False
+# with st.sidebar:
+#     st.markdown('🔐 **GROQ API KEY**')
+#     GROQ_API_KEY = st.text_input("Enter your API-Key-GROQ", type="password")
+    
+#     if not GROQ_API_KEY:
+#         st.warning("⚠️ Please enter your GROQ API Key to proceed.")
+    
+    
+#     st.markdown("### 📄 Upload Resume")
 
+#     # Email Input Field
+#     email = st.text_input("📧 Enter your Email", key="email_input")
+
+#     # Resume Upload Section
+#     pdf_file = st.file_uploader("Upload your resume (PDF)", type="pdf", key="resume_uploader")
+    
+#     company_options = ['Select a Company', 'Google', 'Amazon', 'Microsoft', 'Product-Based', 'TCS', 'Infosys', 'Service-based']
+#     selected_company = st.selectbox('Choose the Company:', company_options, key="company_dropdown")
+#     if selected_company !="Select a Company":
+#         st.session_state.company=selected_company
+#     # Ensure Email is Valid Before Proceeding
+#     if pdf_file is not None and email.strip() != "" and selected_company != "Select a Company" and GROQ_API_KEY is not None:
+#         if is_valid_email(email):
+#             if st.session_state.current_stage == "pre_start":
+#                 with st.spinner("Analyzing Resume..."):
+#                     processed_text = process_pdf(pdf_file)
+
+#                     if processed_text:
+#                         st.session_state.pdf_text = processed_text
+#                         st.session_state.current_stage = "interview"
+#                         st.session_state.question_count = 0
+#                         st.session_state.chat_history = []
+#                         st.session_state.user_email = email  # Store email in session state
+#                         st.rerun()
+#         else:
+#             st.error("❌ Please enter a valid email address.")
+
+#     elif pdf_file is not None and email.strip() == "":
+#         st.warning("⚠️ Please enter your email before uploading your resume.")
+#     elif selected_company == "Select a Company":
+#         st.warning("⚠️ Please select a company before uploading your resume.")
+
+#     st.markdown("### 📝 Interview Instructions")
+
+# # Instructional Text
+#     st.markdown("""
+#     Type **`hello`** or Let's Start to start the interview.  
+#     Once started, questions will appear one-by-one.  
+#     Please write your answers in the text area itself provided.
+#     """)
+
+#     # # Display Current Interview Progress
+#     # st.markdown(f"""
+#     # ### 🎯 Current Status  
+#     # ✅ **Questions Completed:** `{st.session_state.question_count}`  
+#     # 📊 **Progress:** {"🌟" * st.session_state.question_count if st.session_state.question_count > 0 else "🚀 Keep Going!"}  
+#     # """)
+
+#     # st.markdown("---")
+
+#     # # Quick Tips Section
+#     # st.markdown("#### 📌 Quick Tips")
+#     # st.markdown("1. Speak clearly into your microphone\n2. Structure your answers\n3. Take your time")
+
+#     # st.markdown("---")
+#     # st.markdown("<div style='text-align: center; color: var(--primary);'>🔒 Secure Connection</div>", unsafe_allow_html=True)
+with st.sidebar:
+    st.markdown('🔐 **GROQ API KEY**')
+    input_api_key = st.text_input("Enter your GROQ API Key", type="password")
+
+    # Default to None
+    GROQ_API_KEY = None
+
+    if input_api_key:
+        with st.spinner("🔍 Validating API key..."):
+            if is_valid_groq_api_key(input_api_key):
+                st.success("✅ API key is valid.")
+                GROQ_API_KEY = input_api_key
+            else:
+                st.error("❌ Invalid API key. Please check and try again.")
+                GROQ_API_KEY = None  # Treat invalid key as no key
+    else:
+        st.warning("⚠️ Please enter your GROQ API Key to proceed.")
+        
+    
+    st.markdown("### 📄 Upload Resume")
     # Email Input Field
     email = st.text_input("📧 Enter your Email", key="email_input")
 
@@ -269,54 +355,42 @@ with st.sidebar:
     
     company_options = ['Select a Company', 'Google', 'Amazon', 'Microsoft', 'Product-Based', 'TCS', 'Infosys', 'Service-based']
     selected_company = st.selectbox('Choose the Company:', company_options, key="company_dropdown")
-    if selected_company !="Select a Company":
-        st.session_state.company=selected_company
-    # Ensure Email is Valid Before Proceeding
-    if pdf_file is not None and email.strip() != "" and selected_company != "Select a Company":
-        if is_valid_email(email):
-            if st.session_state.current_stage == "pre_start":
-                with st.spinner("Analyzing Resume..."):
-                    processed_text = process_pdf(pdf_file)
+    
+    if selected_company != "Select a Company":
+        st.session_state.company = selected_company
 
-                    if processed_text:
-                        st.session_state.pdf_text = processed_text
-                        st.session_state.current_stage = "interview"
-                        st.session_state.question_count = 0
-                        st.session_state.chat_history = []
-                        st.session_state.user_email = email  # Store email in session state
-                        st.rerun()
-        else:
-            st.error("❌ Please enter a valid email address.")
+    # Proceed only if API key is provided
+    if GROQ_API_KEY:
+        # Ensure Email is Valid Before Proceeding
+        if pdf_file is not None and email.strip() != "" and selected_company != "Select a Company":
+            if is_valid_email(email):
+                if st.session_state.current_stage == "pre_start":
+                    with st.spinner("Analyzing Resume..."):
+                        processed_text = process_pdf(pdf_file)
 
-    elif pdf_file is not None and email.strip() == "":
-        st.warning("⚠️ Please enter your email before uploading your resume.")
-    elif selected_company == "Select a Company":
-        st.warning("⚠️ Please select a company before uploading your resume.")
+                        if processed_text:
+                            st.session_state.pdf_text = processed_text
+                            st.session_state.current_stage = "interview"
+                            st.session_state.question_count = 0
+                            st.session_state.chat_history = []
+                            st.session_state.user_email = email  # Store email in session state
+                            st.session_state.api_key = GROQ_API_KEY  # Save API key in session state
+                            st.rerun()
+            else:
+                st.error("❌ Please enter a valid email address.")
+        elif pdf_file is not None and email.strip() == "":
+            st.warning("⚠️ Please enter your email before uploading your resume.")
+        elif selected_company == "Select a Company":
+            st.warning("⚠️ Please select a company before uploading your resume.")
+    else:
+        st.info("🔐 API key is required to start the interview.")
 
     st.markdown("### 📝 Interview Instructions")
-
-# Instructional Text
     st.markdown("""
-    Type **`hello`** or Let's Start to start the interview.  
+    Type **`hello`** or **`Let's Start`** to start the interview.  
     Once started, questions will appear one-by-one.  
     Please write your answers in the text area itself provided.
     """)
-
-    # # Display Current Interview Progress
-    # st.markdown(f"""
-    # ### 🎯 Current Status  
-    # ✅ **Questions Completed:** `{st.session_state.question_count}`  
-    # 📊 **Progress:** {"🌟" * st.session_state.question_count if st.session_state.question_count > 0 else "🚀 Keep Going!"}  
-    # """)
-
-    # st.markdown("---")
-
-    # # Quick Tips Section
-    # st.markdown("#### 📌 Quick Tips")
-    # st.markdown("1. Speak clearly into your microphone\n2. Structure your answers\n3. Take your time")
-
-    # st.markdown("---")
-    # st.markdown("<div style='text-align: center; color: var(--primary);'>🔒 Secure Connection</div>", unsafe_allow_html=True)
 
 if not st.session_state.pdf_text:
     st.markdown(
